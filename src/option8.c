@@ -14,6 +14,7 @@
 
 #define DEFAULT_PATH "/tmp/snapshots"
 #define DEFAULT_INTERVAL 30
+#define CONFIG_FILE "/etc/option8.conf"
 
 static int running = 1;
 static int interval = DEFAULT_INTERVAL;
@@ -56,6 +57,31 @@ void daemonize() {
     for (int x = sysconf(_SC_OPEN_MAX); x >= 0; x--) {
         close(x);
     }
+}
+
+void load_config() {
+    FILE *config_file = fopen(CONFIG_FILE, "r");
+    if (config_file == NULL) {
+        return;
+    }
+
+    char line[256];
+    while (fgets(line, sizeof(line), config_file)) {
+        char key[128], value[128];
+        if (sscanf(line, "%127[^=]=%127s", key, value) == 2) {
+            if (strcmp(key, "save_path") == 0) {
+                strncpy(save_path, value, sizeof(save_path) - 1);
+                save_path[sizeof(save_path) - 1] = '\0';
+            } else if (strcmp(key, "interval") == 0) {
+                interval = atoi(value);
+                if (interval <= 0) {
+                    interval = DEFAULT_INTERVAL;
+                }
+            }
+        }
+    }
+
+    fclose(config_file);
 }
 
 void save_image_as_jpeg(const void *buffer, size_t width, size_t height) {
@@ -144,6 +170,8 @@ int main(int argc, char *argv[]) {
         interval = atoi(argv[2]);
         if (interval <= 0) interval = DEFAULT_INTERVAL;
     }
+
+    load_config();
 
     daemonize();
 
