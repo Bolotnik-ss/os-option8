@@ -162,15 +162,6 @@ int main(int argc, char *argv[]) {
     void *buffer;
     unsigned int buffer_length;
 
-    if (argc > 1) {
-        strncpy(save_path, argv[1], sizeof(save_path) - 1);
-        save_path[sizeof(save_path) - 1] = '\0';
-    }
-    if (argc > 2) {
-        interval = atoi(argv[2]);
-        if (interval <= 0) interval = DEFAULT_INTERVAL;
-    }
-
     load_config();
 
     daemonize();
