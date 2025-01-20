@@ -28,4 +28,4 @@ uninstall:
 	rm -f $(SYSTEMD_DIR)/option8.service
 	rm -f $(CONFIG_DIR)/option8.conf
 
-.PHONY: install clean
+.PHONY: install clean uninstall
