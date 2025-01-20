@@ -1,31 +1,39 @@
-CC = gcc
-CFLAGS = -Wall -g
-LDFLAGS = -ljpeg
-SRC = option8.c
-OBJ = $(SRC:.c=.o)
-TARGET = option8
+CC=gcc
+CFLAGS=-Wall -g
+LDFLAGS=-ljpeg
+SRC=option8.c
+BINARY=option8
+SERVICE=option8.service
+CONFIG=option8.conf
+BINARY_DIR=/usr/local/bin
+SERVICE_DIR=/etc/systemd/system
+CONFIG_DIR=/etc
 
-INSTALL_DIR = /usr/local/bin
-SYSTEMD_DIR = /etc/systemd/system
-CONFIG_DIR = /etc
+.PHONY: all clean install uninstall
 
-$(TARGET): $(OBJ)
-	$(CC) $(OBJ) -o $(TARGET) $(LDFLAGS)
+all: $(BINARY)
 
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+$(BINARY): $(SRC)
+	$(CC) $(CFLAGS) $(SRC) -o $(BINARY) $(LDFLAGS)
 
-install: $(TARGET)
-	install -m 755 $(TARGET) $(INSTALL_DIR)
-	install -m 644 option8.service $(SYSTEMD_DIR)
-	install -m 644 option8.conf $(CONFIG_DIR)
+install: all
+	install -m 0755 $(BINARY) $(BINARY_DIR)
+	install -m 0644 $(SERVICE) $(SERVICE_DIR)
+	install -m 0644 $(CONFIG) $(CONFIG_DIR)
 
-clean:
-	rm -f $(OBJ) $(TARGET)
+	systemctl daemon-reload
+	systemctl enable option8.service
+	systemctl start option8.service
 
 uninstall:
-	rm -f $(INSTALL_DIR)/$(TARGET)
-	rm -f $(SYSTEMD_DIR)/option8.service
-	rm -f $(CONFIG_DIR)/option8.conf
+	systemctl stop option8.service
+	systemctl disable option8.service
 
-.PHONY: install clean uninstall
+	rm -f $(CONFIG_DIR)/$(CONFIG)
+	rm -f $(SERVICE_DIR)/$(SERVICE)
+	rm -f $(BINARY_DIR)/$(BINARY)
+
+	systemctl daemon-reload
+
+clean:
+	rm -f $(BINARY)
