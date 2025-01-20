@@ -61,22 +61,26 @@ void daemonize() {
 
 void load_config() {
     FILE *config_file = fopen(CONFIG_FILE, "r");
-    if (config_file == NULL) {
+    if (!config_file) {
+        perror("Не удалось открыть конфигурационный файл");
         return;
     }
 
     char line[256];
     while (fgets(line, sizeof(line), config_file)) {
+        line[strcspn(line, "\n")] = '\0';
+
+        if (line[0] == '\0' || line[0] == '#') {
+            continue;
+        }
+
         char key[128], value[128];
-        if (sscanf(line, "%127[^=]=%127s", key, value) == 2) {
+        if (sscanf(line, "%127s = %127s", key, value) == 2) {
             if (strcmp(key, "save_path") == 0) {
                 strncpy(save_path, value, sizeof(save_path) - 1);
                 save_path[sizeof(save_path) - 1] = '\0';
             } else if (strcmp(key, "interval") == 0) {
                 interval = atoi(value);
-                if (interval <= 0) {
-                    interval = DEFAULT_INTERVAL;
-                }
             }
         }
     }
